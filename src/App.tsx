@@ -6,7 +6,7 @@ import type { CheckoffItem, Filter } from './types'
 export default function App() {
   const [items, setItems] = useState<CheckoffItem[]>([])
   const [name, setName] = useState('')
-  const [filter, setFilter] = useState<Filter>('unchecked')
+  const [filter, setFilter] = useState<Filter>('all')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
   const [notesItem, setNotesItem] = useState<CheckoffItem | null>(null)
@@ -81,21 +81,21 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      <section className="hero">
-        <form className="add-form" onSubmit={addItem}>
-          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} placeholder="Add a new item…" aria-label="New item name" />
-          <button className="primary" disabled={!name.trim()}><span>＋</span> Add item</button>
-        </form>
-      </section>
-
       <section className="list-card">
         <div className="controls">
           <div className="filters" role="group" aria-label="Filter list">
+            <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>All <span>{items.length}</span></button>
             <button className={filter === 'unchecked' ? 'active' : ''} onClick={() => setFilter('unchecked')}>To do <span>{counts.unchecked}</span></button>
             <button className={filter === 'checked' ? 'active' : ''} onClick={() => setFilter('checked')}>Checked <span>{counts.checked}</span></button>
-            <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>All <span>{items.length}</span></button>
           </div>
           <button className="clear-button" onClick={clearChecks} disabled={!counts.checked}>↺ Clear all checks</button>
+        </div>
+
+        <div className="add-row">
+          <form className="add-form" onSubmit={addItem}>
+            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} enterKeyHint="go" placeholder="Add a new item…" aria-label="New item name" />
+            <button className="primary add-button" disabled={!name.trim()}><span>＋</span> Add item</button>
+          </form>
         </div>
 
         {error && <div className="error" role="alert">{error}<button onClick={() => setError('')}>×</button></div>}
@@ -124,7 +124,7 @@ export default function App() {
           </ul>
         )}
       </section>
-      <footer><span className="sync-dot" /> Changes sync automatically across your devices <span className="version">v1.1.1</span></footer>
+      <footer><span className="sync-dot" /> Changes sync automatically across your devices <span className="version">v1.2.0</span></footer>
       {notesItem && <RichTextModal item={notesItem} onClose={() => setNotesItem(null)} onSave={async (html) => { await update(notesItem.checkoff_id, { checkoff_rich_text_html: html }); setNotesItem(null) }} />}
     </main>
   )
