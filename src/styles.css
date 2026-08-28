@@ -90,9 +90,10 @@ footer { padding: 25px; text-align: center; color: #85918e; font-size: 12px; }
   .add-row { padding: 10px; }
   .add-form { padding: 4px; border-radius: 11px; box-shadow: none; }
   .add-form input { min-height: 47px; }
-  .controls { align-items: flex-start; flex-direction: column; }
-  .filters { width: 100%; }
+  .controls { min-height: 62px; padding: 10px; gap: 6px; }
+  .filters { flex: 1; min-width: 0; }
   .filters button { flex: 1; padding-inline: 5px; }
+  .clear-button { flex: 0 0 auto; padding: 7px 3px; font-size: 12px; }
   .items li { padding-inline: 14px; gap: 11px; }
   .item-actions { opacity: .75; }
   .notes-dot { display: none; }
