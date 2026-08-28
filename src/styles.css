@@ -42,7 +42,7 @@ header { min-height: 108px; display: flex; align-items: center; justify-content:
 .check:checked::after { content: '✓'; color: white; font-weight: 700; font-size: 15px; }
 .item-main { min-width: 0; flex: 1; display: flex; align-items: center; gap: 10px; }
 .item-name { padding: 7px 0; overflow: hidden; text-overflow: ellipsis; border: 0; background: none; color: #203c56; text-align: left; font-weight: 500; }
-.done .item-name { color: #91a09f; text-decoration: line-through; }
+.done .item-name { color: #91a09f; }
 .notes-dot { padding: 3px 7px; border-radius: 10px; color: #8b6c45; background: #f3eadc; font-size: 10px; font-weight: 700; text-transform: uppercase; }
 .item-actions { display: flex; gap: 3px; opacity: .35; transition: opacity .15s; }
 li:hover .item-actions, .item-actions:focus-within { opacity: 1; }

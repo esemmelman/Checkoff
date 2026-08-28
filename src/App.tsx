@@ -85,7 +85,7 @@ export default function App() {
         <div className="controls">
           <div className="filters" role="group" aria-label="Filter list">
             <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>All <span>{items.length}</span></button>
-            <button className={filter === 'unchecked' ? 'active' : ''} onClick={() => setFilter('unchecked')}>To do <span>{counts.unchecked}</span></button>
+            <button className={filter === 'unchecked' ? 'active' : ''} onClick={() => setFilter('unchecked')}>Unchecked <span>{counts.unchecked}</span></button>
             <button className={filter === 'checked' ? 'active' : ''} onClick={() => setFilter('checked')}>Checked <span>{counts.checked}</span></button>
           </div>
           <button className="clear-button" onClick={clearChecks} disabled={!counts.checked}>↺ Clear all checks</button>
@@ -124,7 +124,7 @@ export default function App() {
           </ul>
         )}
       </section>
-      <footer><span className="sync-dot" /> Changes sync automatically across your devices <span className="version">v1.2.0</span></footer>
+      <footer><span className="sync-dot" /> Changes sync automatically across your devices <span className="version">v1.2.1</span></footer>
       {notesItem && <RichTextModal item={notesItem} onClose={() => setNotesItem(null)} onSave={async (html) => { await update(notesItem.checkoff_id, { checkoff_rich_text_html: html }); setNotesItem(null) }} />}
     </main>
   )
