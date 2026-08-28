@@ -1,13 +1,9 @@
-import type { Session } from '@supabase/supabase-js'
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
-import { Auth } from './components/Auth'
 import { RichTextModal } from './components/RichTextModal'
 import { CHECKOFF_TABLE, supabase } from './supabase'
 import type { CheckoffItem, Filter } from './types'
 
 export default function App() {
-  const [session, setSession] = useState<Session | null>(null)
-  const [authReady, setAuthReady] = useState(false)
   const [items, setItems] = useState<CheckoffItem[]>([])
   const [name, setName] = useState('')
   const [filter, setFilter] = useState<Filter>('unchecked')
@@ -18,28 +14,20 @@ export default function App() {
   const [error, setError] = useState('')
 
   const loadItems = useCallback(async () => {
-    if (!session) return
     const { data, error: loadError } = await supabase.from(CHECKOFF_TABLE).select('*').order('checkoff_created_at', { ascending: false })
     if (loadError) setError(loadError.message)
     else { setItems((data ?? []) as CheckoffItem[]); setError('') }
     setLoading(false)
-  }, [session])
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => { setSession(data.session); setAuthReady(true) })
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next))
-    return () => data.subscription.unsubscribe()
   }, [])
 
   useEffect(() => {
-    if (!session) { setItems([]); setLoading(false); return }
     setLoading(true)
     loadItems()
-    const channel = supabase.channel(`checkoff_items_sync_v1:${session.user.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: CHECKOFF_TABLE, filter: `checkoff_user_id=eq.${session.user.id}` }, loadItems)
+    const channel = supabase.channel('checkoff_items_sync_shared_v1')
+      .on('postgres_changes', { event: '*', schema: 'public', table: CHECKOFF_TABLE }, loadItems)
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [session, loadItems])
+  }, [loadItems])
 
   const counts = useMemo(() => ({
     unchecked: items.filter((item) => !item.checkoff_check_yn).length,
@@ -51,8 +39,8 @@ export default function App() {
   async function addItem(event: FormEvent) {
     event.preventDefault()
     const cleanName = name.trim()
-    if (!cleanName || !session) return
-    const { error: addError } = await supabase.from(CHECKOFF_TABLE).insert({ checkoff_name: cleanName, checkoff_user_id: session.user.id })
+    if (!cleanName) return
+    const { error: addError } = await supabase.from(CHECKOFF_TABLE).insert({ checkoff_name: cleanName, checkoff_user_id: null })
     if (addError) setError(addError.code === '23505' ? 'That name is already on your list.' : addError.message)
     else { setName(''); await loadItems() }
   }
@@ -85,14 +73,11 @@ export default function App() {
     if (clearError) { setError(clearError.message); await loadItems() }
   }
 
-  if (!authReady) return <div className="loading-screen">Loading Checkoff…</div>
-  if (!session) return <Auth />
-
   return (
     <main className="app-shell">
       <header>
         <div className="brand"><span className="brand-mark small">✓</span><div><p className="eyebrow">IN SYNC</p><h1>Checkoff</h1></div></div>
-        <div className="account"><span>{session.user.email}</span><button className="text-button" onClick={() => supabase.auth.signOut()}>Sign out</button></div>
+        <div className="account"><span className="sync-dot" /> Shared list</div>
       </header>
 
       <section className="hero">

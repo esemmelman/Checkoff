@@ -1,6 +1,6 @@
 # Checkoff
 
-A private, realtime-synced checklist backed by Supabase. Each account gets its own list and can add, rename, check, filter, annotate, and delete items from any device.
+A password-free, realtime-synced checklist backed by Supabase. Everyone opening the app shares the same list and can add, rename, check, filter, annotate, and delete items from any device.
 
 ## Local development
 
@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-The browser client uses a Supabase publishable key. Database access is protected by row-level security, so users can only access their own rows.
+The browser client uses a Supabase publishable key. Row-level security explicitly permits shared anonymous access, so anyone with the app URL can view and modify the list.
 
 ## Database
 
