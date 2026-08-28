@@ -16,7 +16,13 @@ export default function App() {
   const loadItems = useCallback(async () => {
     const { data, error: loadError } = await supabase.from(CHECKOFF_TABLE).select('*').order('checkoff_created_at', { ascending: false })
     if (loadError) setError(loadError.message)
-    else { setItems((data ?? []) as CheckoffItem[]); setError('') }
+    else {
+      const alphabetical = ((data ?? []) as CheckoffItem[]).sort((a, b) =>
+        a.checkoff_name.localeCompare(b.checkoff_name, undefined, { sensitivity: 'base' }),
+      )
+      setItems(alphabetical)
+      setError('')
+    }
     setLoading(false)
   }, [])
 
@@ -118,7 +124,7 @@ export default function App() {
           </ul>
         )}
       </section>
-      <footer><span className="sync-dot" /> Changes sync automatically across your devices <span className="version">v1.1.0</span></footer>
+      <footer><span className="sync-dot" /> Changes sync automatically across your devices <span className="version">v1.1.1</span></footer>
       {notesItem && <RichTextModal item={notesItem} onClose={() => setNotesItem(null)} onSave={async (html) => { await update(notesItem.checkoff_id, { checkoff_rich_text_html: html }); setNotesItem(null) }} />}
     </main>
   )
