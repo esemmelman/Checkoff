@@ -75,14 +75,7 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      <header>
-        <div className="brand"><span className="brand-mark small">✓</span><div><p className="eyebrow">IN SYNC</p><h1>Checkoff</h1></div></div>
-        <div className="account"><span className="sync-dot" /> Shared list</div>
-      </header>
-
       <section className="hero">
-        <p className="eyebrow">MAKE SPACE FOR WHAT MATTERS</p>
-        <h2>What’s on your mind?</h2>
         <form className="add-form" onSubmit={addItem}>
           <input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} placeholder="Add a new item…" aria-label="New item name" />
           <button className="primary" disabled={!name.trim()}><span>＋</span> Add item</button>
@@ -125,7 +118,7 @@ export default function App() {
           </ul>
         )}
       </section>
-      <footer><span className="sync-dot" /> Changes sync automatically across your devices</footer>
+      <footer><span className="sync-dot" /> Changes sync automatically across your devices <span className="version">v1.1.0</span></footer>
       {notesItem && <RichTextModal item={notesItem} onClose={() => setNotesItem(null)} onSave={async (html) => { await update(notesItem.checkoff_id, { checkoff_rich_text_html: html }); setNotesItem(null) }} />}
     </main>
   )

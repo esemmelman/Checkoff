@@ -17,7 +17,7 @@ header { min-height: 108px; display: flex; align-items: center; justify-content:
 .eyebrow { margin: 0 0 4px; font-size: 10px; font-weight: 700; letter-spacing: .19em; color: #87929a; }
 .account { gap: 18px; color: #71808d; font-size: 13px; }
 .text-button { border: 0; padding: 4px; background: transparent; color: #d55d37; font-weight: 600; }
-.hero { padding: 58px 0 42px; text-align: center; }
+.hero { padding: 32px 0 24px; text-align: center; }
 .hero h2 { font-family: 'Newsreader', serif; font-size: clamp(38px, 6vw, 58px); margin: 4px 0 27px; color: #17324d; }
 .add-form { display: flex; gap: 10px; width: min(680px, 100%); margin: auto; padding: 7px; border: 1px solid #dbd9d2; border-radius: 16px; background: #fff; box-shadow: 0 14px 45px #1c324514; }
 .add-form input { flex: 1; min-width: 0; border: 0; outline: 0; padding: 12px 16px; color: #17324d; font-size: 16px; }
@@ -58,6 +58,7 @@ li:hover .item-actions, .item-actions:focus-within { opacity: 1; }
 .error { margin: 15px 20px 0; padding: 11px 14px; display: flex; justify-content: space-between; border-radius: 9px; color: #8d332c; background: #fdece8; font-size: 13px; }
 .error button { border: 0; background: none; color: inherit; }
 footer { padding: 25px; text-align: center; color: #85918e; font-size: 12px; }
+.version { margin-left: 9px; color: #a8afac; }
 .sync-dot { display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; background: #66a287; }
 .auth-shell { min-height: 100vh; display: grid; place-items: center; padding: 25px; }
 .auth-card { width: min(430px, 100%); padding: 44px; border: 1px solid #dedbd3; border-radius: 22px; background: #fff; text-align: center; box-shadow: 0 25px 80px #1b334619; }
@@ -85,7 +86,7 @@ footer { padding: 25px; text-align: center; color: #85918e; font-size: 12px; }
   .app-shell { width: min(100% - 20px, 1040px); }
   header { min-height: 85px; }
   .account span { display: none; }
-  .hero { padding: 40px 0 30px; }
+  .hero { padding: 20px 0 16px; }
   .hero h2 { font-size: 39px; }
   .add-form { align-items: stretch; flex-direction: column; padding: 9px; }
   .add-form input { min-height: 47px; }
