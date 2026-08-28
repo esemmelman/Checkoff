@@ -6,7 +6,7 @@ import type { CheckoffItem, Filter } from './types'
 export default function App() {
   const [items, setItems] = useState<CheckoffItem[]>([])
   const [name, setName] = useState('')
-  const [filter, setFilter] = useState<Filter>('all')
+  const [filter, setFilter] = useState<Filter>('unchecked')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
   const [notesItem, setNotesItem] = useState<CheckoffItem | null>(null)
@@ -124,7 +124,7 @@ export default function App() {
           </ul>
         )}
       </section>
-      <footer><span className="sync-dot" /> Changes sync automatically across your devices <span className="version">v1.2.2</span></footer>
+      <footer><span className="sync-dot" /> Changes sync automatically across your devices <span className="version">v1.2.3</span></footer>
       {notesItem && <RichTextModal item={notesItem} onClose={() => setNotesItem(null)} onSave={async (html) => { await update(notesItem.checkoff_id, { checkoff_rich_text_html: html }); setNotesItem(null) }} />}
     </main>
   )
