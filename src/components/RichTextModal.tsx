@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import type { CheckoffItem } from '../types'
 
 type Props = { item: CheckoffItem; onClose: () => void; onSave: (html: string) => Promise<void> }
@@ -75,6 +75,14 @@ export function RichTextModal({ item, onClose, onSave }: Props) {
     if (editor.current) editor.current.innerHTML = linkify(editor.current.innerHTML)
   }
 
+  function openLink(event: MouseEvent<HTMLDivElement>) {
+    const anchor = (event.target as HTMLElement).closest('a')
+    if (!anchor) return
+
+    event.preventDefault()
+    window.open(anchor.href, '_blank', 'noopener,noreferrer')
+  }
+
   return (
     <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <section className="modal" role="dialog" aria-modal="true" aria-labelledby="notes-title">
@@ -90,7 +98,7 @@ export function RichTextModal({ item, onClose, onSave }: Props) {
           <button onClick={() => format('formatBlock', 'h3')}>Heading</button>
           <button onClick={() => format('removeFormat')}>Clear style</button>
         </div>
-        <div ref={editor} className="editor" contentEditable suppressContentEditableWarning onBlur={linkifyEditor} data-placeholder="Add notes, links, details, or anything useful…" />
+        <div ref={editor} className="editor" contentEditable suppressContentEditableWarning onBlur={linkifyEditor} onClick={openLink} data-placeholder="Add notes, links, details, or anything useful…" />
         <div className="modal-actions"><button className="secondary" onClick={onClose}>Cancel</button><button className="primary" onClick={save} disabled={saving}>{saving ? 'Saving…' : 'Save notes'}</button></div>
       </section>
     </div>
