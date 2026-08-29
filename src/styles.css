@@ -80,6 +80,7 @@ footer { padding: 25px; text-align: center; color: #85918e; font-size: 12px; }
 .editor { min-height: 280px; max-height: 48vh; padding: 18px; overflow: auto; border: 1px solid #dedfdb; border-radius: 0 0 10px 10px; outline: none; line-height: 1.65; color: #243f56; }
 .editor:empty::before { content: attr(data-placeholder); color: #a0aaa9; }
 .editor:focus { border-color: #e8734a; box-shadow: inset 0 0 0 1px #e8734a; }
+.editor a { color: #1769aa; text-decoration: underline; }
 .modal-actions { justify-content: flex-end; gap: 9px; margin-top: 18px; }
 
 @media (max-width: 640px) {

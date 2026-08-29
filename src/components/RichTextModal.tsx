@@ -4,12 +4,58 @@ import type { CheckoffItem } from '../types'
 
 type Props = { item: CheckoffItem; onClose: () => void; onSave: (html: string) => Promise<void> }
 
+const URL_PATTERN = /\b(?:https?:\/\/|www\.)[^\s<>]+/gi
+const TRAILING_PUNCTUATION = /[.,!?;:)}\]]+$/
+
+function linkify(html: string) {
+  const document = new DOMParser().parseFromString(DOMPurify.sanitize(html), 'text/html')
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+  const textNodes: Text[] = []
+
+  while (walker.nextNode()) {
+    const node = walker.currentNode as Text
+    if (!node.parentElement?.closest('a')) textNodes.push(node)
+  }
+
+  for (const node of textNodes) {
+    const text = node.data
+    const fragment = document.createDocumentFragment()
+    let lastIndex = 0
+    let foundUrl = false
+
+    for (const match of text.matchAll(URL_PATTERN)) {
+      const matchedText = match[0]
+      const url = matchedText.replace(TRAILING_PUNCTUATION, '')
+      if (!url) continue
+
+      foundUrl = true
+      const index = match.index ?? 0
+      fragment.append(text.slice(lastIndex, index))
+
+      const anchor = document.createElement('a')
+      anchor.href = url.startsWith('www.') ? `https://${url}` : url
+      anchor.textContent = url
+      anchor.target = '_blank'
+      anchor.rel = 'noopener noreferrer'
+      fragment.append(anchor, matchedText.slice(url.length))
+      lastIndex = index + matchedText.length
+    }
+
+    if (foundUrl) {
+      fragment.append(text.slice(lastIndex))
+      node.replaceWith(fragment)
+    }
+  }
+
+  return DOMPurify.sanitize(document.body.innerHTML, { ADD_ATTR: ['target'] })
+}
+
 export function RichTextModal({ item, onClose, onSave }: Props) {
   const editor = useRef<HTMLDivElement>(null)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (editor.current) editor.current.innerHTML = DOMPurify.sanitize(item.checkoff_rich_text_html)
+    if (editor.current) editor.current.innerHTML = linkify(item.checkoff_rich_text_html)
   }, [item])
 
   function format(command: string, value?: string) {
@@ -19,8 +65,14 @@ export function RichTextModal({ item, onClose, onSave }: Props) {
 
   async function save() {
     setSaving(true)
-    await onSave(DOMPurify.sanitize(editor.current?.innerHTML ?? ''))
+    const html = linkify(editor.current?.innerHTML ?? '')
+    if (editor.current) editor.current.innerHTML = html
+    await onSave(html)
     setSaving(false)
+  }
+
+  function linkifyEditor() {
+    if (editor.current) editor.current.innerHTML = linkify(editor.current.innerHTML)
   }
 
   return (
@@ -38,7 +90,7 @@ export function RichTextModal({ item, onClose, onSave }: Props) {
           <button onClick={() => format('formatBlock', 'h3')}>Heading</button>
           <button onClick={() => format('removeFormat')}>Clear style</button>
         </div>
-        <div ref={editor} className="editor" contentEditable suppressContentEditableWarning data-placeholder="Add notes, links, details, or anything useful…" />
+        <div ref={editor} className="editor" contentEditable suppressContentEditableWarning onBlur={linkifyEditor} data-placeholder="Add notes, links, details, or anything useful…" />
         <div className="modal-actions"><button className="secondary" onClick={onClose}>Cancel</button><button className="primary" onClick={save} disabled={saving}>{saving ? 'Saving…' : 'Save notes'}</button></div>
       </section>
     </div>
