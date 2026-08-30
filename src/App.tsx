@@ -95,7 +95,7 @@ export default function App() {
   }
 
   function startVoiceInput() {
-    if (!/Android/i.test(navigator.userAgent) || listening || name.trim()) return
+    if (!/Android/i.test(navigator.userAgent) || listening || speechRecognition.current || name.trim()) return
 
     const Recognition = window.SpeechRecognition ?? window.webkitSpeechRecognition
     if (!Recognition) return
@@ -187,7 +187,7 @@ export default function App() {
 
         <div className="add-row">
           <form className="add-form" onSubmit={addItem}>
-            <input className={listening ? 'listening' : ''} value={name} onChange={(e) => setName(e.target.value)} onFocus={startVoiceInput} maxLength={200} enterKeyHint="go" placeholder={listening ? 'Listening…' : 'Add a new item…'} aria-label="New item name" aria-describedby={listening ? 'voice-status' : undefined} />
+            <input className={listening ? 'listening' : ''} value={name} onChange={(e) => setName(e.target.value)} onFocus={startVoiceInput} onClick={startVoiceInput} maxLength={200} enterKeyHint="go" placeholder={listening ? 'Listening…' : 'Add a new item…'} aria-label="New item name" aria-describedby={listening ? 'voice-status' : undefined} />
             {listening && <span id="voice-status" className="voice-status" role="status">Listening…</span>}
             <button className="primary add-button" disabled={!name.trim()}><span>＋</span> Add item</button>
           </form>
