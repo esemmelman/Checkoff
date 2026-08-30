@@ -1,7 +1,33 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { RichTextModal } from './components/RichTextModal'
 import { CHECKOFF_TABLE, supabase } from './supabase'
 import type { CheckoffItem, Filter } from './types'
+
+type SpeechRecognitionEvent = {
+  resultIndex: number
+  results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>
+}
+
+type SpeechRecognitionInstance = {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  onstart: (() => void) | null
+  onresult: ((event: SpeechRecognitionEvent) => void) | null
+  onerror: ((event: { error: string }) => void) | null
+  onend: (() => void) | null
+  start: () => void
+  stop: () => void
+}
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance
+
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionConstructor
+    webkitSpeechRecognition?: SpeechRecognitionConstructor
+  }
+}
 
 export default function App() {
   const [items, setItems] = useState<CheckoffItem[]>([])
@@ -12,6 +38,10 @@ export default function App() {
   const [notesItem, setNotesItem] = useState<CheckoffItem | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [listening, setListening] = useState(false)
+  const speechRecognition = useRef<SpeechRecognitionInstance | null>(null)
+
+  useEffect(() => () => speechRecognition.current?.stop(), [])
 
   const loadItems = useCallback(async () => {
     const { data, error: loadError } = await supabase.from(CHECKOFF_TABLE).select('*').order('checkoff_created_at', { ascending: false })
@@ -49,6 +79,47 @@ export default function App() {
     const { error: addError } = await supabase.from(CHECKOFF_TABLE).insert({ checkoff_name: cleanName, checkoff_user_id: null })
     if (addError) setError(addError.code === '23505' ? 'That name is already on your list.' : addError.message)
     else { setName(''); await loadItems() }
+  }
+
+  function startVoiceInput() {
+    if (!/Android/i.test(navigator.userAgent) || listening || name.trim()) return
+
+    const Recognition = window.SpeechRecognition ?? window.webkitSpeechRecognition
+    if (!Recognition) return
+
+    const recognition = new Recognition()
+    speechRecognition.current = recognition
+    recognition.continuous = false
+    recognition.interimResults = true
+    recognition.lang = navigator.language || 'en-US'
+
+    let finalTranscript = ''
+    recognition.onstart = () => setListening(true)
+    recognition.onresult = (event) => {
+      let interimTranscript = ''
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const transcript = event.results[index][0].transcript
+        if (event.results[index].isFinal) finalTranscript += transcript
+        else interimTranscript += transcript
+      }
+      setName(`${finalTranscript}${interimTranscript}`.trimStart())
+    }
+    recognition.onerror = (event) => {
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        setError('Microphone access was denied. Allow microphone access for this site, or type the item instead.')
+      }
+    }
+    recognition.onend = () => {
+      setListening(false)
+      speechRecognition.current = null
+    }
+
+    try {
+      recognition.start()
+    } catch {
+      speechRecognition.current = null
+      setListening(false)
+    }
   }
 
   async function update(id: string, changes: Partial<CheckoffItem>) {
@@ -93,7 +164,8 @@ export default function App() {
 
         <div className="add-row">
           <form className="add-form" onSubmit={addItem}>
-            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} enterKeyHint="go" placeholder="Add a new item…" aria-label="New item name" />
+            <input className={listening ? 'listening' : ''} value={name} onChange={(e) => setName(e.target.value)} onFocus={startVoiceInput} maxLength={200} enterKeyHint="go" placeholder={listening ? 'Listening…' : 'Add a new item…'} aria-label="New item name" aria-describedby={listening ? 'voice-status' : undefined} />
+            {listening && <span id="voice-status" className="voice-status" role="status">Listening…</span>}
             <button className="primary add-button" disabled={!name.trim()}><span>＋</span> Add item</button>
           </form>
         </div>

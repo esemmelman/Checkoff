@@ -21,6 +21,8 @@ header { min-height: 108px; display: flex; align-items: center; justify-content:
 .add-row { padding: 14px 20px; border-bottom: 1px solid #e9e7e2; background: #faf9f5; }
 .add-form { display: flex; gap: 10px; width: min(680px, 100%); margin: auto; padding: 7px; border: 1px solid #dbd9d2; border-radius: 16px; background: #fff; box-shadow: 0 14px 45px #1c324514; }
 .add-form input { flex: 1; min-width: 0; border: 0; outline: 0; padding: 12px 16px; color: #17324d; font-size: 16px; }
+.add-form input.listening { background: #fff8f5; }
+.voice-status { align-self: center; color: #d55d37; font-size: 12px; font-weight: 700; }
 .primary, .secondary { border: 0; border-radius: 11px; padding: 13px 19px; font-weight: 700; }
 .primary { color: #fff; background: #e8734a; box-shadow: 0 7px 18px #df704339; }
 .primary:hover { background: #d9623c; }
