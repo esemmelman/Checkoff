@@ -40,8 +40,12 @@ export default function App() {
   const [error, setError] = useState('')
   const [listening, setListening] = useState(false)
   const speechRecognition = useRef<SpeechRecognitionInstance | null>(null)
+  const voiceSilenceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => () => speechRecognition.current?.stop(), [])
+  useEffect(() => () => {
+    speechRecognition.current?.stop()
+    if (voiceSilenceTimer.current) clearTimeout(voiceSilenceTimer.current)
+  }, [])
 
   const loadItems = useCallback(async () => {
     const { data, error: loadError } = await supabase.from(CHECKOFF_TABLE).select('*').order('checkoff_created_at', { ascending: false })
@@ -74,7 +78,16 @@ export default function App() {
 
   async function addItem(event: FormEvent) {
     event.preventDefault()
-    const cleanName = name.trim()
+    if (voiceSilenceTimer.current) {
+      clearTimeout(voiceSilenceTimer.current)
+      voiceSilenceTimer.current = null
+    }
+    speechRecognition.current?.stop()
+    await saveNewItem(name)
+  }
+
+  async function saveNewItem(itemName: string) {
+    const cleanName = itemName.trim()
     if (!cleanName) return
     const { error: addError } = await supabase.from(CHECKOFF_TABLE).insert({ checkoff_name: cleanName, checkoff_user_id: null })
     if (addError) setError(addError.code === '23505' ? 'That name is already on your list.' : addError.message)
@@ -102,7 +115,17 @@ export default function App() {
         if (event.results[index].isFinal) finalTranscript += transcript
         else interimTranscript += transcript
       }
-      setName(`${finalTranscript}${interimTranscript}`.trimStart())
+      const transcript = `${finalTranscript}${interimTranscript}`.trimStart()
+      setName(transcript)
+
+      if (voiceSilenceTimer.current) clearTimeout(voiceSilenceTimer.current)
+      if (transcript.trim()) {
+        voiceSilenceTimer.current = setTimeout(async () => {
+          voiceSilenceTimer.current = null
+          recognition.stop()
+          await saveNewItem(transcript)
+        }, 3000)
+      }
     }
     recognition.onerror = (event) => {
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
