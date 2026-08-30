@@ -18,6 +18,7 @@ type SpeechRecognitionInstance = {
   onend: (() => void) | null
   start: () => void
   stop: () => void
+  abort: () => void
 }
 
 type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance
@@ -41,6 +42,8 @@ export default function App() {
   const [listening, setListening] = useState(false)
   const speechRecognition = useRef<SpeechRecognitionInstance | null>(null)
   const voiceSilenceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const voiceStartedAt = useRef(0)
+  const voiceCancelled = useRef(false)
 
   useEffect(() => () => {
     speechRecognition.current?.stop()
@@ -95,13 +98,31 @@ export default function App() {
   }
 
   function startVoiceInput() {
-    if (!/Android/i.test(navigator.userAgent) || listening || speechRecognition.current || name.trim()) return
+    if (!/Android/i.test(navigator.userAgent)) return
+
+    if (speechRecognition.current) {
+      if (Date.now() - voiceStartedAt.current <= 3000) {
+        voiceCancelled.current = true
+        if (voiceSilenceTimer.current) {
+          clearTimeout(voiceSilenceTimer.current)
+          voiceSilenceTimer.current = null
+        }
+        speechRecognition.current.abort()
+        setListening(false)
+        setName('')
+      }
+      return
+    }
+
+    if (name.trim()) return
 
     const Recognition = window.SpeechRecognition ?? window.webkitSpeechRecognition
     if (!Recognition) return
 
     const recognition = new Recognition()
     speechRecognition.current = recognition
+    voiceStartedAt.current = Date.now()
+    voiceCancelled.current = false
     recognition.continuous = false
     recognition.interimResults = true
     recognition.lang = navigator.language || 'en-US'
@@ -109,6 +130,7 @@ export default function App() {
     let finalTranscript = ''
     recognition.onstart = () => setListening(true)
     recognition.onresult = (event) => {
+      if (voiceCancelled.current) return
       let interimTranscript = ''
       for (let index = event.resultIndex; index < event.results.length; index += 1) {
         const transcript = event.results[index][0].transcript
@@ -135,6 +157,7 @@ export default function App() {
     recognition.onend = () => {
       setListening(false)
       speechRecognition.current = null
+      voiceStartedAt.current = 0
     }
 
     try {
@@ -187,7 +210,7 @@ export default function App() {
 
         <div className="add-row">
           <form className="add-form" onSubmit={addItem}>
-            <input className={listening ? 'listening' : ''} value={name} onChange={(e) => setName(e.target.value)} onFocus={startVoiceInput} onClick={startVoiceInput} maxLength={200} enterKeyHint="go" placeholder={listening ? 'Listening…' : 'Add a new item…'} aria-label="New item name" aria-describedby={listening ? 'voice-status' : undefined} />
+            <input className={listening ? 'listening' : ''} value={name} onChange={(e) => setName(e.target.value)} onClick={startVoiceInput} maxLength={200} enterKeyHint="go" placeholder={listening ? 'Listening…' : 'Add a new item…'} aria-label="New item name" aria-describedby={listening ? 'voice-status' : undefined} />
             {listening && <span id="voice-status" className="voice-status" role="status">Listening…</span>}
             <button className="primary add-button" disabled={!name.trim()}><span>＋</span> Add item</button>
           </form>
